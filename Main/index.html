@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>React</title>
+    <!-- REACT LIBRARY-->
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script> 
+    <!-- REACT DOM LIBRARY-->
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <!--BABEL LIBRARY-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+   
+    <!-- DESIGNATED LOCATION TO INSERT REACT CONTENT-->
+    <div id="root"></div>
+
+
+    <!-- JAVASCRIPT-->
+
+    <script type="text/babel">
+    
+    class ProductRow extends React.Component {
+  render() {
+    const product = this.props.product;
+    const name = product.veggo ? (
+      product.name
+    ) : (
+        <span style={{ color: "" }}>{product.name}</span>
+    );
+
+    return (
+      <tr>
+        <td>{name}</td>
+        <td>{product.price}</td>
+      </tr>
+    );
+  }
+}
+
+class ProductTable extends React.Component {
+  render() {
+    const rows = [];
+    const filterText = this.props.filterText;
+    const isVegeterian = this.props.isVegeterian;
+    const filterCategory = this.props.filterCategory;
+
+    this.props.products.forEach(product => {
+      const name = product.name.toLowerCase();
+      if (name.indexOf(filterText.toLowerCase())) {
+        return;
+      }
+      if ( filterCategory !== product.category && filterCategory !== '' ) {
+        return;
+      }
+      if (isVegeterian && !product.veggo) {
+        return;
+      }
+      rows.push(<ProductRow product={product} key={product.name} />);
+    });
+
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th>Rätter</th>
+            <th>Priser</th>
+          </tr>
+          
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    );
+  }
+}
+
+class FilterByCategory extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleFilterCategoryChange = this.handleFilterCategoryChange.bind(this);
+  }
+  
+  handleFilterCategoryChange(category){
+    this.props.onFilterCategoryChange(category);
+  }  
+  
+  render() {
+    const items = [];    
+    
+    this.props.categories.forEach(category => {
+      items.push(
+        <button
+          className="category__item"
+          key={category}
+          onClick={() => this.handleFilterCategoryChange(category)}
+        >
+          {category}
+        </button>
+      );
+    });
+
+    return (
+      <div className="categories">
+        <img className="img" src="ham.png" alt="logo" />
+        {items}
+      </div>
+    );
+  }
+}
+
+class SearchBar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
+    this.handleVegeterian = this.handleVegeterian.bind(this);
+  }
+
+  handleFilterTextChange(e) {
+    this.props.onFilterTextChange(e.target.value);
+  }
+
+  handleVegeterian(e) {
+    this.props.onInStockChange(e.target.checked);
+  }
+
+  render() {
+    return (
+      <div className="search">
+        <form>
+          <input
+            type="text"
+            placeholder="Search dish...."
+            value={this.props.filterText}
+            onChange={this.handleFilterTextChange}
+          />
+          <p>
+            <input className="checkbox"
+              type="checkbox"
+              checked={this.props.isVegeterian}
+              onChange={this.handleVegeterian}
+            />{" "}
+            VEGETARISKA RÄTTER
+          </p>
+          <p>
+            <input className="checkbox"
+              type="checkbox"
+              checked={this.props.gluten}
+              onChange={this.handleGluten}
+            />{" "}
+            GLUTENFRITT
+          </p>
+        </form>
+      </div>
+    );
+  }
+}
+
+class FilterableProductTable extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      filterText: "",
+      isVegeterian: false
+    };
+    this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
+    this.handleVegeterian = this.handleVegeterian.bind(this);
+    this.handleFilterCategoryChange = this.handleFilterCategoryChange.bind(this);
+  }
+
+  handleFilterTextChange(filterText) {
+    this.setState({
+      filterText: filterText
+    });
+  }
+
+  handleVegeterian(isVegeterian) {
+    this.setState({
+      isVegeterian: isVegeterian
+    });
+  }
+  
+  handleFilterCategoryChange(filterCategory){
+    this.setState({
+      filterCategory: filterCategory
+    })
+  }
+
+  render() {
+    return (
+      <div className="container">
+        <FilterByCategory
+          categories={this.props.productCategories}
+          filterCategory={this.state.filterCategory}
+          onFilterCategoryChange={this.handleFilterCategoryChange}
+        />
+        <div className="products">
+          <SearchBar
+            filterText={this.state.filterText}
+            isVegeterian={this.state.isVegeterian}
+            onInStockChange={this.handleVegeterian}
+            onFilterTextChange={this.handleFilterTextChange}
+            gluten={this.state.gluten}
+            handleGluten={this.handleGluten}
+          />
+          <ProductTable
+            products={this.props.products}
+            filterCategory={this.state.filterCategory}
+            filterText={this.state.filterText}
+            isVegeterian={this.state.isVegeterian}
+          />
+        </div>
+      </div>
+    );
+  }
+}
+
+const PRODUCTS = [
+  {
+    category: "MÅNDAG",
+    price: "100",
+    veggo: false,
+    name: "mat1",
+
+  },
+  {
+    category: "MÅNDAG",
+    price: "200",
+    veggo: true,
+    gluten: true,
+    name: "mat2",
+  
+  },
+  {
+    category: "MÅNDAG",
+    price: "300",
+    veggo: true,
+    name: "mat3",
+
+  },
+  {
+    category: "TISDAG",
+    price: "100",
+    veggo: false,
+    name: "mat1"
+  },
+  {
+    category: "TISDAG",
+    price: "600",
+    veggo: true,
+    name: "mat2"
+  },
+  {
+    category: "TISDAG",
+    price: "700",
+    veggo: true,
+    name: "mat3"
+  },
+  {
+    category: "TISDAG",
+    price: "200",
+    veggo: true,
+    name: "mat4"
+  },
+  {
+    category: "TISDAG",
+    price: "300",
+    veggo: true,
+    name: "mat5"
+  },
+  
+  {
+    category: "ONSDAG",
+    price: "100",
+    veggo: true,
+    name: "mat2"
+  },
+  {
+    category: "ONSDAG",
+    price: "200",
+    veggo: true,
+    name: "mat3"
+  },
+  {
+    category: "TORSDAG",
+    price: "100",
+    veggo: true,
+    name: "mat1",
+
+  },
+  {
+    category: "TORSDAG",
+    price: "200",
+    veggo: true,
+    name: "mat2"
+  },
+  {
+    category: "FREDAG",
+    price: "100",
+    veggo: false,
+    name: "mat1"
+  },
+  {
+    category: "FREDAG",
+    price: "300",
+    veggo: true,
+    name: "mat3"
+  },
+];
+
+const uniqItems = (x, i, array) => array.indexOf(x) === i;
+const PRODUCT_CATEGORIES = PRODUCTS.map(prod => prod.category).filter(uniqItems);
+
+
+ReactDOM.render(
+    <div>
+  <FilterableProductTable productCategories={PRODUCT_CATEGORIES} products={PRODUCTS} />
+  </div>,
+  document.getElementById("root")
+);
+
+
+    </script>
+
+</body>
+</html>
